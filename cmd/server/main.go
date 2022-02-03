@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+
+	transportHTTP "github.com/anfelo/gotodo/internal/transport/http"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -22,18 +23,15 @@ func (a *App) Run() error {
 			"AppVersion": a.Version,
 		}).Info("Setting up application")
 
-	http.HandleFunc("/", Home)
+	handler := transportHTTP.NewHandler()
+	handler.SetupRoutes()
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
 		log.Error("Failed to set up server")
 		return err
 	}
 
 	return nil
-}
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "You are on the home page")
 }
 
 func main() {
