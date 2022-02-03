@@ -1,8 +1,55 @@
 {{define "content"}}
-<h1>Hello from Home template with hot reload!</h1>
-<ul>
-    {{range .Todos}}
-    <li>{{.Description}}</li>
-    {{end}}
-</ul>
+<div class="container">
+  <h1 class="title has-text-centered">My Todos!</h1>
+  <div class="column is-three-fifths is-offset-one-fifth">
+    <form>
+      <div class="field is-grouped">
+        <p class="control is-expanded">
+          <input id="newTodoDescription" class="input" type="text" placeholder="Type a todo...">
+        </p>
+        <p class="control">
+          <a class="button is-info" id="createTodoBtn">
+            Create
+          </a>
+        </p>
+      </div>
+    </form>
+    <ul id="todosList">
+      {{range .Todos}}
+      <li>{{.Description}}</li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+<script>
+  const newTodoDescription = document.getElementById("newTodoDescription");
+  const createTodoBtn = document.getElementById("createTodoBtn");
+  const todosList = document.getElementById("todosList");
+
+  async function submitTodo(newTodo) {
+    const res = await fetch("/api/todos", {
+      method: "POST",
+      body: JSON.stringify(newTodo),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(res);
+    const todoJSON = await res.json();
+    console.log(todoJSON.Description);
+
+    const liItem = document.createElement('li');
+    liItem.innerHTML = todoJSON.Description;
+    todosList.appendChild(liItem);
+  }
+
+  createTodoBtn.addEventListener("click", (e) => {
+    console.log(newTodoDescription.value);
+    const newTodo = {
+      description: newTodoDescription.value
+    };
+
+    submitTodo(newTodo);
+  });
+</script>
 {{end}}
