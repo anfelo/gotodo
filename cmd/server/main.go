@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/anfelo/gotodo/internal/database"
 	"github.com/anfelo/gotodo/internal/todos"
 	transportHTTP "github.com/anfelo/gotodo/internal/transport/http"
 
@@ -24,7 +25,17 @@ func (a *App) Run() error {
 			"AppVersion": a.Version,
 		}).Info("Setting up application")
 
-	todosService := todos.NewService()
+	var err error
+	db, err := database.NewDatabase()
+	if err != nil {
+		return err
+	}
+	err = database.MigrateDB(db)
+	if err != nil {
+		return err
+	}
+
+	todosService := todos.NewService(db)
 
 	handler := transportHTTP.NewHandler(todosService)
 	handler.SetupRoutes()
