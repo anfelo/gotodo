@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/anfelo/gotodo/internal/todos"
 	"github.com/gorilla/mux"
 
 	log "github.com/sirupsen/logrus"
@@ -11,7 +12,8 @@ import (
 
 // Handler - stores pointer to our comments service
 type Handler struct {
-	Router *mux.Router
+	Router  *mux.Router
+	Service *todos.Service
 }
 
 // Response - an object to store responses from the api
@@ -21,8 +23,10 @@ type Response struct {
 }
 
 // NewHandler - returns a pointer to a Handler
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(service *todos.Service) *Handler {
+	return &Handler{
+		Service: service,
+	}
 }
 
 // LoggingMiddleware - a handy middleware function that logs out incoming requests
@@ -65,10 +69,17 @@ func (h *Handler) SetupRoutes() {
 }
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
-	type data struct{}
+	type data struct {
+		Todos []todos.Todo
+	}
 	tmpl := template.Must(template.ParseFiles(
 		"internal/templates/layout.html",
 		"internal/templates/home.html",
 	))
-	tmpl.Execute(w, data{})
+	todosList, err := h.Service.GetAllTodos()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, data{Todos: todosList})
 }

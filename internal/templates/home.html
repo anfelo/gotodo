@@ -1,3 +1,8 @@
 {{define "content"}}
 <h1>Hello from Home template with hot reload!</h1>
+<ul>
+    {{range .Todos}}
+    <li>{{.Description}}</li>
+    {{end}}
+</ul>
 {{end}}

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/anfelo/gotodo/internal/todos"
 	transportHTTP "github.com/anfelo/gotodo/internal/transport/http"
 
 	log "github.com/sirupsen/logrus"
@@ -23,7 +24,9 @@ func (a *App) Run() error {
 			"AppVersion": a.Version,
 		}).Info("Setting up application")
 
-	handler := transportHTTP.NewHandler()
+	todosService := todos.NewService()
+
+	handler := transportHTTP.NewHandler(todosService)
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
