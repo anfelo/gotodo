@@ -14,11 +14,13 @@
         </p>
       </div>
     </form>
-    <ul id="todosList">
+    <div id="todosList" class="mt-2">
       {{range .Todos}}
-      <li>{{.Description}}</li>
+      <div class="box">
+        <input type="checkbox" {{with .Completed}}checked{{end}}> {{.Description}}
+      </div>
       {{end}}
-    </ul>
+    </div>
   </div>
 </div>
 <script>
@@ -34,17 +36,15 @@
         'Content-Type': 'application/json'
       }
     });
-    console.log(res);
     const todoJSON = await res.json();
-    console.log(todoJSON.Description);
 
     const liItem = document.createElement('li');
-    liItem.innerHTML = todoJSON.Description;
+    liItem.innerHTML = todoJSON.description;
     todosList.appendChild(liItem);
+    newTodoDescription.value = "";
   }
 
   createTodoBtn.addEventListener("click", (e) => {
-    console.log(newTodoDescription.value);
     const newTodo = {
       description: newTodoDescription.value
     };
