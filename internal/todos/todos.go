@@ -63,9 +63,9 @@ func (s *Service) UpdateTodo(ID uuid.UUID, newTodo Todo) (Todo, error) {
 	if err != nil {
 		return Todo{}, err
 	}
-
 	todo.UpdatedAt = time.Now()
-	if result := s.DB.Model(&todo).Updates(newTodo); result.Error != nil {
+	updates := map[string]interface{}{"Description": newTodo.Description, "Completed": newTodo.Completed}
+	if result := s.DB.Model(&todo).Updates(updates); result.Error != nil {
 		return Todo{}, result.Error
 	}
 
@@ -83,7 +83,7 @@ func (s *Service) DeleteTodo(ID uuid.UUID) error {
 // GetAllTodos - retrieves all Todos from the db
 func (s *Service) GetAllTodos() ([]Todo, error) {
 	var todos []Todo
-	if result := s.DB.Find(&todos); result.Error != nil {
+	if result := s.DB.Order("created_at").Find(&todos); result.Error != nil {
 		return []Todo{}, result.Error
 	}
 	return todos, nil

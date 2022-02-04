@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 
@@ -90,6 +89,5 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(todosList)
 	tmpl.Execute(w, data{Todos: todosList})
 }
