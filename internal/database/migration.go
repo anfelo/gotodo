@@ -6,7 +6,7 @@ import (
 )
 
 func MigrateDB(db *gorm.DB) error {
-	if err := db.AutoMigrate(&todos.Todo{}); err != nil {
+	if err := db.AutoMigrate(&todos.TodoList{}, &todos.Todo{}); err != nil {
 		return err
 	}
 	return nil

@@ -108,3 +108,53 @@ func (h *Handler) DeleteTodo(w http.ResponseWriter, r *http.Request) {
 	}
 	RespondJson(w, http.StatusOK, map[string]string{"success": "true"})
 }
+
+// GetTodoList - retrieve a todo list by ID
+func (h *Handler) GetTodoList(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		restErr := errors.NewBadRequestError("invalid todo id")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+
+	todo, err := h.Service.GetTodoList(id)
+	if err != nil {
+		restErr := errors.NewNotFoundError("todo list not found")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+
+	RespondJson(w, http.StatusOK, todo)
+}
+
+// GetAllTodoLists - retrieve all todo lists from the todos service
+func (h *Handler) GetAllTodoLists(w http.ResponseWriter, r *http.Request) {
+	lists, err := h.Service.GetAllTodoLists()
+	if err != nil {
+		restErr := errors.NewInternatServerError("internal server error")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+	RespondJson(w, http.StatusOK, lists)
+}
+
+// CreateTodoList - creates a new todo
+func (h *Handler) CreateTodoList(w http.ResponseWriter, r *http.Request) {
+	var todoList todos.TodoList
+	if err := json.NewDecoder(r.Body).Decode(&todoList); err != nil {
+		restErr := errors.NewBadRequestError("invalid json body")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+	todoList, err := h.Service.CreateTodoList(todoList)
+	if err != nil {
+		restErr := errors.NewInternatServerError("internal server error")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+	RespondJson(w, http.StatusCreated, todoList)
+}

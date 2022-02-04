@@ -15,19 +15,33 @@ type Service struct {
 // Todo - defines the Todo model
 type Todo struct {
 	ID          uuid.UUID `json:"id" db:"id"`
+	TodoListID  uuid.UUID `json:"todo_list_id" db:"todo_list_id"`
 	Description string    `json:"description" db:"description"`
 	Completed   bool      `json:"completed" db:"completed"`
 	CreatedAt   time.Time `json:"created" db:"created_at"`
 	UpdatedAt   time.Time `json:"updated" db:"updated_at"`
 }
 
+// TodoList - defines the TodoList model
+type TodoList struct {
+	ID        uuid.UUID `json:"id" db:"id"`
+	Title     string    `json:"title" db:"title"`
+	Todos     []Todo    `json:"todos" db:"todos"`
+	CreatedAt time.Time `json:"created" db:"created_at"`
+	UpdatedAt time.Time `json:"updated" db:"updated_at"`
+}
+
 // TodoService - the interface for our Todo service
 type TodoService interface {
 	GetTodo(ID uuid.UUID) (Todo, error)
-	CreateTodo(Todo Todo) (Todo, error)
+	CreateTodo(todo Todo) (Todo, error)
 	UpdateTodo(ID uuid.UUID, newTodo Todo) (Todo, error)
 	DeleteTodo(ID uuid.UUID) error
 	GetAllTodos() ([]Todo, error)
+
+	GetTodoList(ID uuid.UUID) (TodoList, error)
+	GetAllTodoLists() ([]TodoList, error)
+	CreateTodoList(todoList TodoList) (TodoList, error)
 }
 
 // NewService - returns new todos service
@@ -87,4 +101,33 @@ func (s *Service) GetAllTodos() ([]Todo, error) {
 		return []Todo{}, result.Error
 	}
 	return todos, nil
+}
+
+// GetTodoList - retrieves a TodoList by their ID from the db
+func (s *Service) GetTodoList(ID uuid.UUID) (TodoList, error) {
+	var todoList TodoList
+	if result := s.DB.First(&todoList, ID); result.Error != nil {
+		return TodoList{}, result.Error
+	}
+	return todoList, nil
+}
+
+// GetAllTodoLists - retrieves all Todo lists from the db
+func (s *Service) GetAllTodoLists() ([]TodoList, error) {
+	var lists []TodoList
+	if result := s.DB.Order("created_at").Find(&lists); result.Error != nil {
+		return []TodoList{}, result.Error
+	}
+	return lists, nil
+}
+
+// CreateTodoList - adds a new Todo list to the database
+func (s *Service) CreateTodoList(todoList TodoList) (TodoList, error) {
+	todoList.ID = uuid.New()
+	todoList.CreatedAt = time.Now()
+	todoList.UpdatedAt = time.Now()
+	if result := s.DB.Create(&todoList); result.Error != nil {
+		return TodoList{}, result.Error
+	}
+	return todoList, nil
 }

@@ -1,30 +1,69 @@
 {{define "content"}}
-<div class="container">
-  <h1 class="title has-text-centered">My Todos!</h1>
-  <div class="column is-three-fifths is-offset-one-fifth">
-    <div class="field is-grouped">
-      <p class="control is-expanded">
-        <input id="newTodoDescription" class="input" type="text" placeholder="Type a todo..." />
-      </p>
-      <p class="control">
-        <a class="button is-info" id="createTodoBtn">
-          Create
-        </a>
-      </p>
+<style>
+  .todo-list-item {
+    padding: 10px 5px;
+    cursor: pointer;
+  }
+
+  .todo-list-item.selected {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: deepskyblue;
+  }
+</style>
+<div class="container mt-4">
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">Lists</h1>
+      <div class="field is-grouped">
+        <p class="control is-expanded">
+          <input id="newListTitle" class="input" type="text" placeholder="Type a list title..." />
+        </p>
+        <p class="control">
+          <a class="button is-primary" id="createListBtn">
+            New List
+          </a>
+        </p>
+      </div>
+      <div id="todosList" class="mt-2">
+        {{range .Lists}}
+        <div class="todo-list-item selected" data-id="{{.ID}}">
+          <div class="is-flex is-align-items-center">
+            <span class="is-flex-grow-1 ml-1">{{.Title}}</span>
+            <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
+              ✕
+            </button>
+          </div>
+        </div>
+        {{end}}
+      </div>
     </div>
-    <div id="todosList" class="mt-2">
-      {{range .Todos}}
-      <div class="box" data-id="{{.ID}}">
-        <div class="is-flex is-align-items-center">
-          <input class="check-completed" type="checkbox" data-id="{{.ID}}" data-description="{{.Description}}" {{with
-            .Completed}}checked{{end}} />
-          <span class="is-flex-grow-1 ml-1">{{.Description}}</span>
-          <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
-            ✕
-          </button>
+    <div class="column is-three-fifths">
+      <div class="todo-list-detail is-hidden">
+        <div class="field is-grouped">
+          <p class="control is-expanded">
+            <input id="newTodoDescription" class="input" type="text" placeholder="Type a todo..." />
+          </p>
+          <p class="control">
+            <a class="button is-info" id="createTodoBtn">
+              Create
+            </a>
+          </p>
+        </div>
+        <div id="todosList" class="mt-2">
+          {{range .Todos}}
+          <div class="box" data-id="{{.ID}}">
+            <div class="is-flex is-align-items-center">
+              <input class="check-completed" type="checkbox" data-id="{{.ID}}" data-description="{{.Description}}"
+                {{with .Completed}}checked{{end}} />
+              <span class="is-flex-grow-1 ml-1">{{.Description}}</span>
+              <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
+                ✕
+              </button>
+            </div>
+          </div>
+          {{end}}
         </div>
       </div>
-      {{end}}
     </div>
   </div>
 </div>
