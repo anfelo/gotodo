@@ -76,7 +76,7 @@ func (h *Handler) SetupRoutes() {
 	h.Router.HandleFunc("/api/lists", h.GetAllTodoLists).Methods("GET")
 	h.Router.HandleFunc("/api/lists", h.CreateTodoList).Methods("POST")
 	// h.Router.HandleFunc("/api/todos/{id}", h.UpdateTodo).Methods("PUT")
-	// h.Router.HandleFunc("/api/todos/{id}", h.DeleteTodo).Methods("DELETE")
+	h.Router.HandleFunc("/api/lists/{id}", h.DeleteTodoList).Methods("DELETE")
 
 	h.Router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		RespondJson(w, http.StatusOK, Response{Message: "I am Alive"})

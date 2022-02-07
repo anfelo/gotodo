@@ -26,7 +26,7 @@ type Todo struct {
 type TodoList struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	Title     string    `json:"title" db:"title"`
-	Todos     []Todo    `json:"todos" db:"todos"`
+	Todos     []Todo    `json:"todos" db:"todos" gorm:"constraint:OnDelete:CASCADE;"`
 	CreatedAt time.Time `json:"created" db:"created_at"`
 	UpdatedAt time.Time `json:"updated" db:"updated_at"`
 }
@@ -42,6 +42,7 @@ type TodoService interface {
 	GetTodoList(ID uuid.UUID) (TodoList, error)
 	GetAllTodoLists() ([]TodoList, error)
 	CreateTodoList(todoList TodoList) (TodoList, error)
+	DeleteTodoList(ID uuid.UUID) error
 }
 
 // NewService - returns new todos service
@@ -130,4 +131,12 @@ func (s *Service) CreateTodoList(todoList TodoList) (TodoList, error) {
 		return TodoList{}, result.Error
 	}
 	return todoList, nil
+}
+
+// DeleteTodoList - deletes a Todo List from the database by ID
+func (s *Service) DeleteTodoList(ID uuid.UUID) error {
+	if result := s.DB.Delete(&TodoList{}, ID); result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

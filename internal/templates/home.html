@@ -19,17 +19,17 @@
           <input id="newListTitle" class="input" type="text" placeholder="Type a list title..." />
         </p>
         <p class="control">
-          <a class="button is-primary" id="createListBtn">
+          <a class="button is-primary" id="createTodoListBtn">
             New List
           </a>
         </p>
       </div>
-      <div id="todosList" class="mt-2">
+      <div id="todosLists" class="mt-2">
         {{range .Lists}}
-        <div class="todo-list-item selected" data-id="{{.ID}}">
+        <div class="todo-list-item" data-id="{{.ID}}">
           <div class="is-flex is-align-items-center">
             <span class="is-flex-grow-1 ml-1">{{.Title}}</span>
-            <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
+            <button class="button is-small is-danger is-light delete-todo-list-btn" data-id="{{.ID}}">
               ✕
             </button>
           </div>
@@ -38,8 +38,8 @@
       </div>
     </div>
     <div class="column is-three-fifths">
-      <div class="box is-hidden">
-        <h1 class="title">Some Todo List</h1>
+      <div id="todoListDetail" class="box is-hidden" data-id="">
+        <h1 id="todoListDetailTitle" class="title">Some Todo List</h1>
         <div class="todo-list-detail">
           <div class="field is-grouped">
             <p class="control is-expanded">
@@ -51,20 +51,7 @@
               </a>
             </p>
           </div>
-          <div id="todosList" class="mt-2">
-            {{range .Todos}}
-            <div class="box" data-id="{{.ID}}">
-              <div class="is-flex is-align-items-center">
-                <input class="check-completed" type="checkbox" data-id="{{.ID}}" data-description="{{.Description}}"
-                  {{with .Completed}}checked{{end}} />
-                <span class="is-flex-grow-1 ml-1">{{.Description}}</span>
-                <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
-                  ✕
-                </button>
-              </div>
-            </div>
-            {{end}}
-          </div>
+          <div id="todosList" class="mt-2"></div>
         </div>
       </div>
     </div>
@@ -72,10 +59,16 @@
 </div>
 <script>
   const newTodoDescription = document.getElementById("newTodoDescription");
+  const newListTitle = document.getElementById("newListTitle");
   const createTodoBtn = document.getElementById("createTodoBtn");
+  const createTodoListBtn = document.getElementById("createTodoListBtn");
   const todosList = document.getElementById("todosList");
+  const todosLists = document.getElementById("todosLists");
   const todosCheckboxes = document.querySelectorAll(".check-completed");
   const deleteTodoBtn = document.querySelectorAll(".delete-todo-btn");
+  const deleteTodoListBtns = document.querySelectorAll(".delete-todo-list-btn");
+  const todoListDetail = document.getElementById("todoListDetail");
+  const todoListDetailTitle = document.getElementById("todoListDetailTitle");
 
   async function submitTodo(newTodo) {
     const res = await fetch("/api/todos", {
@@ -89,6 +82,20 @@
     newTodoDescription.value = "";
 
     insertNewTodoElement(todoJSON);
+  }
+
+  async function submitTodoList(newTodoList) {
+    const res = await fetch("/api/lists", {
+      method: "POST",
+      body: JSON.stringify(newTodoList),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const todoListJSON = await res.json();
+    newListTitle.value = "";
+
+    insertNewTodoListElement(todoListJSON);
   }
 
   async function saveTodo(todo) {
@@ -115,12 +122,25 @@
     }
   }
 
+  async function deleteTodoList(todoList) {
+    const res = await fetch(`/api/lists/${todoList.id}`, {
+      method: "DELETE",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const todoListElem = document.querySelector(`.todo-list-item[data-id="${todoList.id}"]`);
+    if (todoListElem) {
+      todosLists.removeChild(todoListElem);
+    }
+  }
+
   async function getTodoList(todoListId) {
     const res = await fetch(`/api/lists/${todoListId}`, {
       method: "GET"
     });
     const listJSON = await res.json();
-    console.log(listJSON);
+    displayTodoListDetail(listJSON);
   }
 
   function insertNewTodoElement(todo) {
@@ -144,7 +164,34 @@
     `;
     todosList.innerHTML += todoHTML;
     addEventListenersCheckboxes();
-    addEventListenersDeleteBtns();
+    addEventListenersDeleteTodoBtns();
+  }
+
+  function insertNewTodoListElement(list) {
+    const todoListHTML = `
+      <div class="todo-list-item" data-id="${list.id}">
+        <div class="is-flex is-align-items-center">
+          <span class="is-flex-grow-1 ml-1">${list.title}</span>
+          <button
+            class="button is-small is-danger is-light delete-todo-btn"
+            data-id="${list.id}"">
+            ✕
+          </button>
+        </div>
+      </div>
+    `;
+    todosLists.innerHTML += todoListHTML;
+    addEventListenersTodoListItems();
+    addEventListenersDeleteTodoListBtns();
+  }
+
+  function displayTodoListDetail(todoList) {
+    todoListDetail.classList.remove('is-hidden');
+    todoListDetailTitle.innerHTML = todoList.title;
+    todosList.innerHTML = '';
+    todoList.todos.forEach(todo => {
+      insertNewTodoElement(todo);
+    });
   }
 
   function addEventListenersCheckboxes() {
@@ -167,7 +214,7 @@
     });
   }
 
-  function addEventListenersDeleteBtns() {
+  function addEventListenersDeleteTodoBtns() {
     const deleteTodoBtn = document.querySelectorAll(".delete-todo-btn");
     Array.from(deleteTodoBtn).forEach(btn => {
       btn.addEventListener("click", (e) => {
@@ -183,14 +230,34 @@
     });
   }
 
+  function addEventListenersDeleteTodoListBtns() {
+    const deleteTodoListBtns = document.querySelectorAll(".delete-todo-list-btn");
+    Array.from(deleteTodoListBtns).forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const btn = e.target;
+        const todoListID = btn.dataset.id;
+
+        const todoList = {
+          id: todoListID
+        };
+
+        deleteTodoList(todoList);
+      });
+    });
+  }
+
   function addEventListenersTodoListItems() {
     const todoListItems = document.querySelectorAll(".todo-list-item");
-    console.log(todoListItems);
     Array.from(todoListItems).forEach(item => {
       item.addEventListener("click", (e) => {
-        console.log("click", e)
-        const itemElem = e.target;
+        const itemElem = item;
         const todoListID = itemElem.dataset.id;
+        todoListItems.forEach(listItem => {
+          listItem.classList.remove('selected');
+        });
+        itemElem.classList.add('selected');
+        todoListDetail.dataset.id = todoListID;
         getTodoList(todoListID);
       });
     });
@@ -198,14 +265,24 @@
 
   createTodoBtn.addEventListener("click", (e) => {
     const newTodo = {
+      todo_list_id: todoListDetail.dataset.id,
       description: newTodoDescription.value
     };
 
     submitTodo(newTodo);
   });
 
+  createTodoListBtn.addEventListener("click", (e) => {
+    const newTodoList = {
+      title: newListTitle.value
+    };
+
+    submitTodoList(newTodoList);
+  });
+
   addEventListenersCheckboxes();
-  addEventListenersDeleteBtns();
+  addEventListenersDeleteTodoBtns();
+  addEventListenersDeleteTodoListBtns();
   addEventListenersTodoListItems();
 </script>
 {{end}}

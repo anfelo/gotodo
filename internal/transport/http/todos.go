@@ -158,3 +158,24 @@ func (h *Handler) CreateTodoList(w http.ResponseWriter, r *http.Request) {
 	}
 	RespondJson(w, http.StatusCreated, todoList)
 }
+
+// DeleteTodoList - deletes a todo list by ID
+func (h *Handler) DeleteTodoList(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		restErr := errors.NewBadRequestError("invalid todo id")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+
+	err = h.Service.DeleteTodoList(id)
+	if err != nil {
+		restErr := errors.NewInternatServerError("internal server error")
+		RespondJson(w, restErr.Status, restErr)
+		return
+	}
+	RespondJson(w, http.StatusOK, map[string]string{"success": "true"})
+}
