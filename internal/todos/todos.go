@@ -106,7 +106,7 @@ func (s *Service) GetAllTodos() ([]Todo, error) {
 // GetTodoList - retrieves a TodoList by their ID from the db
 func (s *Service) GetTodoList(ID uuid.UUID) (TodoList, error) {
 	var todoList TodoList
-	if result := s.DB.First(&todoList, ID); result.Error != nil {
+	if result := s.DB.Preload("Todos").First(&todoList, ID); result.Error != nil {
 		return TodoList{}, result.Error
 	}
 	return todoList, nil

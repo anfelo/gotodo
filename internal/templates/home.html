@@ -38,30 +38,33 @@
       </div>
     </div>
     <div class="column is-three-fifths">
-      <div class="todo-list-detail is-hidden">
-        <div class="field is-grouped">
-          <p class="control is-expanded">
-            <input id="newTodoDescription" class="input" type="text" placeholder="Type a todo..." />
-          </p>
-          <p class="control">
-            <a class="button is-info" id="createTodoBtn">
-              Create
-            </a>
-          </p>
-        </div>
-        <div id="todosList" class="mt-2">
-          {{range .Todos}}
-          <div class="box" data-id="{{.ID}}">
-            <div class="is-flex is-align-items-center">
-              <input class="check-completed" type="checkbox" data-id="{{.ID}}" data-description="{{.Description}}"
-                {{with .Completed}}checked{{end}} />
-              <span class="is-flex-grow-1 ml-1">{{.Description}}</span>
-              <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
-                ✕
-              </button>
-            </div>
+      <div class="box is-hidden">
+        <h1 class="title">Some Todo List</h1>
+        <div class="todo-list-detail">
+          <div class="field is-grouped">
+            <p class="control is-expanded">
+              <input id="newTodoDescription" class="input" type="text" placeholder="Type a todo..." />
+            </p>
+            <p class="control">
+              <a class="button is-info" id="createTodoBtn">
+                Create
+              </a>
+            </p>
           </div>
-          {{end}}
+          <div id="todosList" class="mt-2">
+            {{range .Todos}}
+            <div class="box" data-id="{{.ID}}">
+              <div class="is-flex is-align-items-center">
+                <input class="check-completed" type="checkbox" data-id="{{.ID}}" data-description="{{.Description}}"
+                  {{with .Completed}}checked{{end}} />
+                <span class="is-flex-grow-1 ml-1">{{.Description}}</span>
+                <button class="button is-small is-danger is-light delete-todo-btn" data-id="{{.ID}}">
+                  ✕
+                </button>
+              </div>
+            </div>
+            {{end}}
+          </div>
         </div>
       </div>
     </div>
@@ -110,6 +113,14 @@
     if (todoElem) {
       todosList.removeChild(todoElem);
     }
+  }
+
+  async function getTodoList(todoListId) {
+    const res = await fetch(`/api/lists/${todoListId}`, {
+      method: "GET"
+    });
+    const listJSON = await res.json();
+    console.log(listJSON);
   }
 
   function insertNewTodoElement(todo) {
@@ -172,6 +183,19 @@
     });
   }
 
+  function addEventListenersTodoListItems() {
+    const todoListItems = document.querySelectorAll(".todo-list-item");
+    console.log(todoListItems);
+    Array.from(todoListItems).forEach(item => {
+      item.addEventListener("click", (e) => {
+        console.log("click", e)
+        const itemElem = e.target;
+        const todoListID = itemElem.dataset.id;
+        getTodoList(todoListID);
+      });
+    });
+  }
+
   createTodoBtn.addEventListener("click", (e) => {
     const newTodo = {
       description: newTodoDescription.value
@@ -182,5 +206,6 @@
 
   addEventListenersCheckboxes();
   addEventListenersDeleteBtns();
+  addEventListenersTodoListItems();
 </script>
 {{end}}
